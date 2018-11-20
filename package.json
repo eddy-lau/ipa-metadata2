@@ -1,6 +1,6 @@
 {
   "name": "ipa-metadata2",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "extract metadata and provisioning information about an .ipa file",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/matiassingers/ipa-metadata"
+    "url": "https://github.com/tbrand/ipa-metadata2"
   },
   "author": "Matias Singers <mail@matiassingers.com> (http://mts.io)",
   "keywords": [
@@ -36,7 +36,7 @@
   "bugs": {
     "url": "https://github.com/matiassingers/ipa-metadata/issues"
   },
-  "homepage": "https://github.com/matiassingers/ipa-metadata",
+  "homepage": "https://github.com/tbrand/ipa-metadata2",
   "dependencies": {
     "async": "1.2.1",
     "chalk": "1.0.0",
@@ -46,7 +46,7 @@
     "glob": "5.0.10",
     "lodash": "3.9.3",
     "meow": "3.1.0",
-    "provisioning": "1.4.0",
+    "provisioning": "^1.5.0",
     "rimraf": "2.4.0",
     "simple-plist": "0.0.4",
     "temporary": "0.0.8"
