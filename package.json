@@ -41,7 +41,7 @@
     "async": "1.2.1",
     "chalk": "1.0.0",
     "cli-table": "0.3.1",
-    "decompress-zip": "0.2.0",
+    "decompress-zip": "^0.2.2",
     "entitlements": "1.2.0",
     "glob": "5.0.10",
     "lodash": "3.9.3",
