@@ -25,11 +25,13 @@ module.exports = function (file, callback){
     var path = glob.sync(output.path + '/Payload/*/')[0];
 
     data.metadata = plist.readFileSync(Path.join(path, 'Info.plist'));
-    path = path.replace(/ /g, '\\ ');
 
     var tasks = [
       async.apply(provisioning, Path.join(path, 'embedded.mobileprovision'))
     ];
+    // provisioning uses cert-download which escapes paths with ""
+    // if we ALSO escape with \\ that breaks the command
+    path = path.replace(/ /g, '\\ ');
 
     // `entitlements` relies on a OS X only CLI tool called `codesign`
     if(process.platform === 'darwin'){
