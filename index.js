@@ -21,37 +21,80 @@ module.exports = function (file, callback){
   });
 
   unzipper.on('error', cleanUp);
-  unzipper.on('extract', function() {
+  unzipper.on('extract', function(log) {
     var path = glob.sync(output.path + '/Payload/*/')[0];
+    var hasProvision = false;
 
-    data.metadata = plist.readFileSync(Path.join(path, 'Info.plist'));
-
-    var tasks = [
-      async.apply(provisioning, Path.join(path, 'embedded.mobileprovision'))
-    ];
-    // provisioning uses cert-download which escapes paths with ""
-    // if we ALSO escape with \\ that breaks the command
-    path = path.replace(/ /g, '\\ ');
-
-    // `entitlements` relies on a OS X only CLI tool called `codesign`
-    if(process.platform === 'darwin'){
-      tasks.push(async.apply(entitlements, path));
-    }
-
-    async.parallel(tasks, function(error, results){
-      if(error){
-        return cleanUp(error);
+    for(var i = 0; i < log.length; i = i + 1){
+      if(!log[i].deflated){
+        continue;
       }
 
-      data.provisioning = results[0];
+      if(log[i].deflated.indexOf('embedded.mobileprovision') === -1){
+        continue;
+      }
 
-      // Hard to serialize and it looks messy in output
-      delete data.provisioning.DeveloperCertificates;
+      hasProvision = true;
+      break;
+    }
 
-      // Will be undefined on non-OSX platforms
-      data.entitlements = results[1];
+    async.parallel([
+      function(asyncCallback){
+        plist.readFile(Path.join(path, 'Info.plist'), function(plistReadError, plistData) {
+          if (plistReadError) {
+            return asyncCallback(plistReadError);
+          }
+          data.metadata = plistData;
 
-      return cleanUp();
+          return asyncCallback();
+        });
+      },
+      function(asyncCallback){
+        if(!hasProvision){
+            return asyncCallback();
+        }
+
+        provisioning(Path.join(path, 'embedded.mobileprovision'), (provisionError, provisionData) => {
+          if(provisionError){
+            return asyncCallback(provisionError);
+          }
+
+          data.provisioning = provisionData;
+
+          // Hard to serialize and it looks messy in output
+          delete data.provisioning.DeveloperCertificates;
+
+          return asyncCallback();
+        });
+      },
+      function(asyncCallback){
+        // `entitlements` relies on a OS X only CLI tool called `codesign`
+        if(process.platform !== 'darwin'){
+          return asyncCallback();
+        }
+
+        // provisioning uses cert-download which escapes paths with ""
+        // if we ALSO escape with \\ that breaks the command
+        path = path.replace(/ /g, '\\ ');
+
+        entitlements(path, (entitlementsError, entitlementsData) => {
+          if(entitlementsError){
+            // Don't try to set entitlements for stuff that's not signed
+            if(entitlementsError.message.indexOf('code object is not signed at all') > -1){
+              return asyncCallback();
+            }
+
+            return asyncCallback(entitlementsError);
+          }
+
+          // Will be undefined on non-OSX platforms
+          data.entitlements = entitlementsData
+
+          return asyncCallback();
+        });
+      }
+    ], function(error){
+      return cleanUp(error);
     });
   });
 

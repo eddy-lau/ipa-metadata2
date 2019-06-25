@@ -6,7 +6,7 @@ var proxyquire =  require('proxyquire');
 
 
 var ipaMetadataParser = proxyquire('./', {
-  provisioning: function provisioningStub(file, callback) {
+  '@stendahls/provision-parse': function provisioningStub(file, callback) {
     callback(null, {
       key: 'lol',
       DeveloperCertificates: 'whatever'
@@ -39,7 +39,7 @@ describe('ipa-metadata', function() {
           assert.equal(data.metadata['CFBundleShortVersionString'], '1.0.0');
           assert.equal(data.metadata['CFBundleVersion'], '1337');
 
-          assert.deepEqual(data.provisioning, {key: 'lol'});
+          assert.deepEqual(data.provisioning, void 0);
           assert.equal(data.entitlements, void 0);
 
           done();
@@ -58,7 +58,7 @@ describe('ipa-metadata', function() {
           assert.equal(data.metadata['CFBundleShortVersionString'], '1.0.0');
           assert.equal(data.metadata['CFBundleVersion'], '1337');
 
-          assert.deepEqual(data.provisioning, {key: 'lol'});
+          assert.deepEqual(data.provisioning, void 0);
           assert.equal(data.entitlements, void 0);
 
           done();
@@ -91,7 +91,7 @@ describe('ipa-metadata', function() {
         assert.equal(data.metadata['CFBundleShortVersionString'], '1.0.0');
         assert.equal(data.metadata['CFBundleVersion'], '1337');
 
-        assert.deepEqual(data.provisioning, {key: 'lol'});
+        assert.deepEqual(data.provisioning, void 0);
         assert.deepEqual(data.entitlements, {anotherKey: 'test'});
 
         done();
@@ -107,22 +107,20 @@ describe('ipa-metadata', function() {
 
   describe('should handle parsing errors', function() {
     beforeEach(function() {
-      ipaMetadataParser = proxyquire('./', {
-        provisioning: function provisioningStub(file, callback) {
-          callback('fake error');
-        }
+        ipaMetadataParser = proxyquire('./', {
+          'simple-plist': {
+            readFile: function plistReadfileStub(file, callback) {
+              callback('fake error');
+            }
+          }
+        });
       });
-    });
 
     it('should contain the correct data', function(done) {
-      ipaMetadataParser('fixtures/testApp-binaryPlist.ipa', function(err, data) {
+      ipaMetadataParser('fixtures/testApp.ipa', function(err, data) {
         assert.equal(err, 'fake error');
 
-        assert.equal(data.metadata['CFBundleDisplayName'], 'Test App');
-        assert.equal(data.metadata['CFBundleIdentifier'], 'io.mts.testapp');
-        assert.equal(data.metadata['CFBundleName'], 'Test App');
-        assert.equal(data.metadata['CFBundleShortVersionString'], '1.0.0');
-        assert.equal(data.metadata['CFBundleVersion'], '1337');
+        assert.equal(data.metadata, void 0);
 
         assert.equal(data.provisioning, void 0);
         assert.equal(data.entitlements, void 0);
