@@ -1,6 +1,6 @@
 {
   "name": "ipa-metadata2",
-  "version": "1.4.2",
+  "version": "2.0.0",
   "description": "extract metadata and provisioning information about an .ipa file",
   "main": "index.js",
   "scripts": {
