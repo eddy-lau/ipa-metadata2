@@ -66,7 +66,9 @@ module.exports = function (file, callback){
 
           return asyncCallback();
         });
-      },
+      }
+      /*
+      ,
       function(asyncCallback){
         // `entitlements` relies on a OS X only CLI tool called `codesign`
         if(process.platform !== 'darwin'){
@@ -93,6 +95,7 @@ module.exports = function (file, callback){
           return asyncCallback();
         });
       }
+      */
     ], function(error){
       return cleanUp(error);
     });
